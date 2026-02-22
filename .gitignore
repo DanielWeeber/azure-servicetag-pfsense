@@ -2,3 +2,16 @@
 .history
 **/history/
 **/.history/
+
+# Python artifacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+
+# Generated outputs
+aliases.json

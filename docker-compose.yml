@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  azure-service-tags-sync:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      PFREST_BASE_URL: "https://pfsense.example.com:441"
+      PFREST_API_TOKEN: "replace-me"
+      PFREST_TLS_INSECURE: "true"
+      PFREST_ALLOW_CREATE: "true"
+      PFREST_APPLY_CHANGES: "true"
+      AZURE_SERVICES: "AzureStorage,ServiceBus"
+      AZURE_REGIONS: "West Europe,North Europe"
+      AZURE_ALIAS_PREFIX: "azure_st_"
+    command: ["sh", "-c", "python -m pip install -r requirements.txt && python scripts/azure_service_tags_sync.py --apply"]

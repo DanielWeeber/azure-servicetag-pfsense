@@ -1,34 +1,98 @@
 # Azure Service Tags → pfSense Aliases
 
-This repo contains a script that fetches Microsoft Azure Service Tags and syncs
-pfSense-friendly alias definitions using pfRest.
+Fetch Microsoft Azure Service Tags and keep pfSense aliases in sync via pfRest. The
+script supports CLI flags and environment variables, and can run locally or in Docker.
 
-## What it does
+## What this does
 
 - Downloads the latest Service Tags JSON from Microsoft.
-- Filters by service/region.
-- Builds aliases named `azure_service_tag_<AzureTagName>`.
-- Writes alias definitions to `aliases.json`.
+- Filters tags by service and region (global tags are included if the service matches).
+- Builds aliases named `azure_service_tag_<AzureTagName>` (configurable prefix).
+- Writes the results to `aliases.json`.
 - Optionally updates pfSense aliases via pfRest (update-only by default).
 
-## Quick start
+## Quick start (local)
 
 ```bash
 python3 -m pip install -r requirements.txt
 python3 scripts/azure_service_tags_sync.py --dry-run
 ```
 
-## Common options
+## Common CLI examples
 
-- `--service AzureCloud` (repeatable)
-- `--region westeurope` (repeatable)
-- `--include-ipv6`
-- `--output aliases.json`
-- `--pfrest-base-url https://pfsense:441`
-- `--pfrest-api-token <token>`
-- `--pfrest-tls-insecure`
-- `--allow-create`
-- `--apply`
+Dry run with filters:
+
+```bash
+python3 scripts/azure_service_tags_sync.py \
+  --service AzureStorage \
+  --service ServiceBus \
+  --region "West Europe" \
+  --region "North Europe" \
+  --dry-run
+```
+
+Sync to pfSense and apply changes:
+
+```bash
+PFREST_BASE_URL="https://pfsense.example.com:441" \
+PFREST_API_TOKEN="<token>" \
+PFREST_TLS_INSECURE=true \
+PFREST_ALLOW_CREATE=true \
+PFREST_APPLY_CHANGES=true \
+python3 scripts/azure_service_tags_sync.py --apply
+```
+
+## Docker (public Python image)
+
+Dry run with a bind mount:
+
+```bash
+docker run --rm \
+  -v "$PWD":/app \
+  -w /app \
+  python:3.12-slim \
+  sh -c "python -m pip install -r requirements.txt && python scripts/azure_service_tags_sync.py --dry-run"
+```
+
+Sync to pfSense (example):
+
+```bash
+docker run --rm \
+  -v "$PWD":/app \
+  -w /app \
+  -e PFREST_BASE_URL="https://pfsense.example.com:441" \
+  -e PFREST_API_TOKEN="<token>" \
+  -e PFREST_TLS_INSECURE=true \
+  -e PFREST_ALLOW_CREATE=true \
+  -e PFREST_APPLY_CHANGES=true \
+  -e AZURE_SERVICES="Dynamics365BusinessCentral,AzureActiveDirectory,AzureStorage,ServiceBus" \
+  -e AZURE_REGIONS="West Europe,North Europe" \
+  python:3.12-slim \
+  sh -c "python -m pip install -r requirements.txt && python scripts/azure_service_tags_sync.py --apply"
+```
+
+## Docker Compose example
+
+```yaml
+version: "3.9"
+
+services:
+  azure-service-tags-sync:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      PFREST_BASE_URL: "https://pfsense.example.com:441"
+      PFREST_API_TOKEN: "replace-me"
+      PFREST_TLS_INSECURE: "true"
+      PFREST_ALLOW_CREATE: "true"
+      PFREST_APPLY_CHANGES: "true"
+      AZURE_SERVICES: "AzureStorage,ServiceBus"
+      AZURE_REGIONS: "West Europe,North Europe"
+      AZURE_ALIAS_PREFIX: "azure_st_"
+    command: ["sh", "-c", "python -m pip install -r requirements.txt && python scripts/azure_service_tags_sync.py --apply"]
+```
 
 ## Sync behavior
 
@@ -41,7 +105,7 @@ python3 scripts/azure_service_tags_sync.py --dry-run
 - `AZURE_SERVICES`: comma-separated list of Azure services (e.g., `AzureStorage,ServiceBus`).
 - `AZURE_REGIONS`: comma-separated list of regions (e.g., `West Europe,North Europe`).
 - `AZURE_INCLUDE_IPV6`: set to `true` to include IPv6 prefixes (default: IPv4 only).
-- `AZURE_ALIAS_PREFIX`: alias name prefix (default: `azure_service_tag_`).
+- `AZURE_ALIAS_PREFIX`: alias name prefix (default: `azure_st_`).
 - `PFSENSE_ALIAS_MAX_LENGTH`: maximum alias name length (default: `31`).
 - `PFREST_BASE_URL`: pfRest base URL (e.g., `https://pfsense:441`).
 - `PFREST_API_TOKEN`: pfRest API token (sent as `x-api-key`).

@@ -25,7 +25,7 @@ DEFAULT_CONFIRMATION_URL = (
     "https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519"
 )
 USER_AGENT = "azure-service-tags-sync/0.2"
-DEFAULT_ALIAS_PREFIX = "azure_service_tag_"
+DEFAULT_ALIAS_PREFIX = "azure_st_"
 DEFAULT_MAX_ALIAS_LENGTH = 31
 
 
