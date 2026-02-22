@@ -1,0 +1,4 @@
+# Ignore history folders anywhere
+.history
+**/history/
+**/.history/

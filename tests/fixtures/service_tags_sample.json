@@ -1,0 +1,25 @@
+{
+  "values": [
+    {
+      "name": "AzureCloud.westeurope",
+      "properties": {
+        "systemService": "AzureCloud",
+        "region": "westeurope",
+        "addressPrefixes": [
+          "1.2.3.0/24",
+          "2001:db8::/32"
+        ]
+      }
+    },
+    {
+      "name": "Storage.westeurope",
+      "properties": {
+        "systemService": "Storage",
+        "region": "westeurope",
+        "addressPrefixes": [
+          "5.6.7.0/24"
+        ]
+      }
+    }
+  ]
+}
